@@ -1,0 +1,250 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { useCarrinhoStore } from '@/app/store/carrinho';
+import { Pedido } from '@/app/components/AddProduto/ProdutoModal';
+
+// Tipagem de exemplo para os ingredientes (mesma do ProdutoModal)
+type baseIngrediente = {
+    id: number;
+    nome: string;
+    descricao: string;
+    preco: number;
+    obrigatorio: boolean;
+};
+
+type Ingrediente = {
+    Proteinas: baseIngrediente[],
+    Acompanhamentos: baseIngrediente[],
+    Frutas: baseIngrediente[]
+};
+
+// Dados mockados (Geralmente isso viria de um DB ou API)
+const INGREDIENTES_MOCK: Ingrediente[] = [{
+    Proteinas: [
+        { id: 1, nome: 'Proteínas', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
+        { id: 2, nome: 'preotirnas', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
+        { id: 3, nome: 'Proteinas 2', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
+        { id: 4, nome: 'preteina 3', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
+    ],
+    Acompanhamentos: [
+        { id: 1, nome: 'Acompanha', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
+        { id: 2, nome: 'Acompanhamento', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
+        { id: 3, nome: 'Acompanhando', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
+        { id: 4, nome: 'Acompanhou', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
+    ],
+    Frutas: [
+        { id: 1, nome: 'Fruta', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
+        { id: 2, nome: 'Frutas', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
+        { id: 3, nome: 'frutindo', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
+        { id: 4, nome: 'frutando', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
+    ]
+}];
+
+export default function EditProduto({
+    setEditModal,
+    itemIndex // Precisamos saber QUAL item do carrinho estamos editando!
+}: {
+    setEditModal: React.Dispatch<React.SetStateAction<boolean>>;
+    itemIndex: number;
+}) {
+
+    // Acessando nossa loja global
+    const { lista, attCarrinho } = useCarrinhoStore();
+
+    // Estados locais do componente (mesmos lógicos do ProdutoModal)
+    const [pedido, setPedido] = useState<Pedido>();
+    const [selecionados, setSelecionados] = useState<string[]>([]);
+    const [mult, setMult] = useState<number>(1);
+
+
+    // 1. CARREGAR OS DADOS DO CARRINHO PARA A TELA ASSIM QUE ABRIR (Montagem)
+    useEffect(() => {
+        // Pegamos o item exato que o usuário clicou para editar lá no PedidosCarrinho
+        const itemParaEditar = lista[itemIndex];
+
+        if (itemParaEditar) {
+            // Restaurando a quantidade multiplicadora (ex: "2x saladas")
+            setMult(itemParaEditar.qtd);
+
+            // Restaurando os ingredientes selecionados (De string de nomes, achamos os IDs originais)
+            const idsRestaurados: string[] = [];
+
+            itemParaEditar.ingredientes.forEach(nomeIngrediente => {
+                Object.entries(INGREDIENTES_MOCK[0]).forEach(([categoria, itens]) => {
+                    const matchedItem = (itens as baseIngrediente[]).find(i => i.nome === nomeIngrediente);
+                    if (matchedItem) {
+                        idsRestaurados.push(`${categoria}-${matchedItem.id}`);
+                    }
+                });
+            });
+
+            // Define o estado local para simular que o usuário clicou neles!
+            setSelecionados(idsRestaurados);
+        }
+    }, [lista, itemIndex]); // Roda sempre que a lista ou o index mudam
+
+
+
+    // 2. FUNÇÕES DE INTERAÇÃO NA TELA
+    const itemSelecionado = (id: string) => {
+        setSelecionados((prev) =>
+            prev.includes(id)
+                ? prev.filter((itemId) => itemId !== id)
+                : [...prev, id]
+        );
+    };
+
+    const somar = () => { setMult(mult + 1); }
+    const subtrair = () => { setMult(mult - 1); }
+
+    // 3. CALCULO DO VALOR DINÂMICO DOS ITENS CHECADOS NA TELA NESTE MOMENTO
+    const valorfinal = selecionados.reduce((total, selId) => {
+        const [categoria, idStr] = selId.split('-');
+        const id = parseInt(idStr, 10);
+        const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.find((i: baseIngrediente) => i.id === id);
+        return total + (item ? item.preco : 0);
+    }, 0);
+
+    // 4. ATUALIZAR O OBJETO 'PEDIDO' SEMPRE QUE MULT OU SELECIONADOS MUDAM NA TELA
+    useEffect(() => {
+        if (mult <= 0) {
+            setSelecionados([]);
+            setMult(1);
+        }
+        const novoPedido: Pedido = {
+            ingredientes: selecionados.map((selId) => {
+                const [categoria, idStr] = selId.split('-');
+                const id = parseInt(idStr, 10);
+                const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.find((i: baseIngrediente) => i.id === id);
+                return item ? item.nome : '';
+            }).filter(Boolean),
+            qtd: mult,
+            valorTotal: valorfinal * mult
+        }
+        setPedido(novoPedido);
+    }, [mult, valorfinal, selecionados]); // Acompanha as respostas do usuário
+
+
+    // 5. SALVAR NO STORE (Em construção)
+    const salvarEdicao = () => {
+        // ATENÇÃO: Precisaremos de uma função "updateCarrinho" lá no seu `store/carrinho.ts` 
+        // para atualizar o indice X e não simplesmente adicionar como se fosse um novo.
+        // Por enquanto, vou apenas fechar o modal.
+        attCarrinho(pedido!, itemIndex)
+        setEditModal(false);
+    }
+
+    // Apenas as palavras "Adicionar" mudaram para "Salvar"
+    return (
+        <div className="fixed inset-0 bg-gray-50 z-50 overflow-y-auto flex flex-col items-center">
+            <section className="flex flex-col min-h-screen w-full max-w-lg bg-white relative shadow-2xl">
+
+                <button
+                    onClick={() => setEditModal(false)}
+                    className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 transition-colors z-20 bg-white/70 backdrop-blur-md rounded-full p-1 cursor-pointer"
+                    aria-label="Fechar edição"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+                <div className="w-full h-72 bg-[#f0f0f0] flex items-center justify-center text-gray-500 shrink-0">
+                    <span className="text-sm font-medium">img da ediçao</span>
+                </div>
+
+                <div className="bg-white rounded-t-[2.5rem] grow -mt-8 pt-8 pb-12 flex flex-col relative z-10 w-full">
+
+                    <div className="px-6 text-center space-y-2 mb-6">
+                        <h1 className="text-3xl sm:text-[2.2rem] font-bold text-black tracking-tight leading-tight">
+                            Editando Pedido
+                        </h1>
+                        <p className="text-gray-800 text-lg sm:text-[1.15rem]">
+                            Altere as opções da sua salada
+                        </p>
+                    </div>
+
+                    <div className="w-full bg-[#f0f0f0] py-4 px-6 mb-2">
+                        <p className="text-center text-gray-800 text-[1.15rem]">
+                            Escolha as novas opções
+                        </p>
+                    </div>
+
+                    <div className="px-6 flex flex-col pt-2 pb-6">
+                        {Object.entries(INGREDIENTES_MOCK[0]).map(([categoria, itens]) => (
+                            <div key={categoria} className="mb-6">
+                                <h1 className="text-2xl font-bold text-black mt-4 pb-2 ">{categoria}</h1>
+                                {(itens as baseIngrediente[]).map((item) => {
+                                    const itemId = `${categoria}-${item.id}`;
+                                    const takesPart = selecionados.includes(itemId);
+                                    const statusTexto = item.obrigatorio ? "*Obrigatório" : "Opcional";
+                                    const statusCor = item.obrigatorio ? "text-gray-800" : "text-gray-600";
+                                    const precoFormatado = `R$${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+                                    return (
+                                        <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300`}>
+                                            <span className={`text-xs text-right mb-1 leading-none ${statusCor}`}>
+                                                {statusTexto}
+                                            </span>
+
+                                            <div
+                                                onClick={() => itemSelecionado(itemId)}
+                                                className={`flex justify-between items-center p-2 -mx-2 rounded-lg cursor-pointer transition-colors
+                                                ${takesPart ? 'bg-[#fafafa]' : 'bg-transparent hover:bg-gray-50'}`}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className="text-xl text-black leading-tight">{item.nome}</span>
+                                                    <span className={`text-sm mt-1 ${takesPart ? 'text-gray-700' : 'text-gray-400'}`}>
+                                                        {item.descricao}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-xl text-black">{precoFormatado}</span>
+                                                    {takesPart ? (
+                                                        <div className="text-2xl">☑</div>
+                                                    ) : (
+                                                        <div className="text-2xl">☐</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ))}
+
+                        {selecionados.length > 0 && pedido && (
+                            <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-[#f0f0f0] p-4 pb-1 sm:p-5 sm:pb-0 z-50 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-between bg-white rounded-full px-4 py-3 min-w-[130px] shadow-sm">
+                                        <button onClick={subtrair} className="text-black shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <line x1="8" y1="12" x2="16" y2="12" />
+                                            </svg>
+                                        </button>
+                                        <span className="text-xl font-medium text-black">{pedido.qtd}</span>
+                                        <button onClick={somar} className="text-black shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="black">
+                                                <circle cx="12" cy="12" r="11" />
+                                                <path d="M12 7v10M7 12h10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <button onClick={salvarEdicao} className="flex-1 flex items-center justify-between bg-green-500 hover:bg-green-600 rounded-full px-6 py-4 shadow-sm cursor-pointer transition-colors">
+                                        <span className="text-[1.1rem] text-white font-bold">Salvar</span>
+                                        <span className="text-[1.1rem] text-white font-bold">{`R$${pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    );
+}
