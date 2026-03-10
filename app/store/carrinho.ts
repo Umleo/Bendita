@@ -13,6 +13,7 @@ interface Carrinho {
     addCarrinho: (pedido: Pedido) => void;
     attCarrinho: (pedido: Pedido, index: number) => void;
     dltCarrinho: (index: number) => void;
+    limparCarrinho: () => void;
 }
 
 export const useCarrinhoStore = create<Carrinho>((set) => ({

@@ -215,27 +215,27 @@ export default function EditProduto({
                         ))}
 
                         {selecionados.length > 0 && pedido && (
-                            <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-[#f0f0f0] p-4 pb-1 sm:p-5 sm:pb-0 z-50 rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex items-center justify-between bg-white rounded-full px-4 py-3 min-w-[130px] shadow-sm">
+                            <div className="fixed bottom-2 left-1/2 -translate-x-1/2 w-[calc(100%-1rem)] max-w-lg bg-[#f0f0f0] p-3 pb-3 sm:p-5 sm:pb-5 z-50 rounded-3xl sm:rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                                <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
+                                    <div className="flex items-center justify-between bg-white rounded-full px-3 py-2 sm:px-4 sm:py-3 min-w-[100px] sm:min-w-[130px] shadow-sm shrink-0">
                                         <button onClick={subtrair} className="text-black shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                                 <circle cx="12" cy="12" r="10" />
                                                 <line x1="8" y1="12" x2="16" y2="12" />
                                             </svg>
                                         </button>
-                                        <span className="text-xl font-medium text-black">{pedido.qtd}</span>
+                                        <span className="text-lg sm:text-xl font-medium text-black">{pedido.qtd}</span>
                                         <button onClick={somar} className="text-black shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="black">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="black">
                                                 <circle cx="12" cy="12" r="11" />
                                                 <path d="M12 7v10M7 12h10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                         </button>
                                     </div>
 
-                                    <button onClick={salvarEdicao} className="flex-1 flex items-center justify-between bg-green-500 hover:bg-green-600 rounded-full px-6 py-4 shadow-sm cursor-pointer transition-colors">
-                                        <span className="text-[1.1rem] text-white font-bold">Salvar</span>
-                                        <span className="text-[1.1rem] text-white font-bold">{`R$${pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</span>
+                                    <button onClick={salvarEdicao} className="flex-1 flex items-center justify-between bg-green-500 hover:bg-green-600 rounded-full px-4 py-2 sm:px-6 sm:py-4 shadow-sm cursor-pointer transition-colors min-w-0">
+                                        <span className="text-[0.95rem] sm:text-[1.1rem] text-white font-bold truncate mr-2">Salvar</span>
+                                        <span className="text-[0.95rem] sm:text-[1.1rem] text-white font-bold shrink-0">{`R$${pedido.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}</span>
                                     </button>
                                 </div>
                             </div>

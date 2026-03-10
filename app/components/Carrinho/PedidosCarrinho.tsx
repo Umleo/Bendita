@@ -40,7 +40,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
             <section className="flex flex-col h-dvh w-full max-w-lg bg-white relative shadow-2xl overflow-hidden">
 
                 {/* 1. CABEÇALHO (com o nome da Loja) */}
-                <header className="shrink-0 bg-white z-10 px-6 pt-6 pb-4 flex items-center justify-between border-b border-gray-200">
+                <header className="shrink-0 bg-white z-10 px-6 pt-4 pb-2 flex items-center justify-between border-b border-gray-200">
                     <h1 className="text-2xl font-bold text-black tracking-tight">Carrinho</h1>
                     {/* Botão de Fechar Apenas Visual por enquanto */}
                     <button
@@ -60,7 +60,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                     ) : (
                         <>
                             {/* 2. INFORMAÇÕES DO ESTABELECIMENTO */}
-                            <div className="px-6 py-4 flex items-center justify-between shrink-0">
+                            <div className="px-6 py-2 flex items-center justify-between shrink-0">
                                 <h2 className="text-[1.15rem] font-bold text-black">Bendita Salada</h2>
                                 <span className="text-sm text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-md">
                                     Ativo
@@ -68,11 +68,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                             </div>
 
                             {/* 3. FAIXA CINZA COMPLETA DIVISORIA 1 */}
-                            <div className="w-full bg-[#f0f0f0] py-3 px-6 mb-2 shrink-0">
-                                <p className="text-gray-800 text-[1.1rem] font-medium">
-                                    Suas Compras
-                                </p>
-                            </div>
+                            <div className="w-full h-px bg-[#f0f0f0] mb-2 shrink-0"></div>
 
                             {/* 4. MAP DOS ITENS ESCOLHIDOS */}
                             <div className="px-6 flex flex-col flex-1 overflow-y-auto min-h-0 pb-6">
@@ -130,7 +126,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                     <div className="shrink-0 w-full max-w-lg bg-white z-50 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)] border-t border-gray-100 flex flex-col">
 
                         {/* FAIXA CINZA COMPLETA DIVISORIA 2 - TAXAS */}
-                        <div className="w-full bg-[#f0f0f0] py-3 px-6 flex justify-between items-center rounded-t-3xl">
+                        <div className="w-full bg-[#f0f0f0] py-1 px-6 flex justify-between items-center rounded-t-3xl">
                             <p className="text-gray-800 text-[1.1rem] font-medium">
                                 Taxa de Entrega
                             </p>
@@ -140,7 +136,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                         </div>
 
                         {/* Linha de Subtotal se Quiser */}
-                        <div className="px-6 py-4 flex flex-col gap-2">
+                        <div className="px-6 py-2 flex flex-col gap-2">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal pedidos</span>
                                 <span>R${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
@@ -157,7 +153,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
 
                         {/* 6. BOTÃO VERDE FINAL (Fixo embaixo, estilo iFood) */}
                         {lista.length > 0 && (
-                            <div className="w-full bg-white p-4 pb-6 sm:p-5 sm:pb-8 z-50 border-t border-gray-100 mt-2">
+                            <div className="w-full bg-white p-2 pb-6 sm:p-5 sm:pb-8 z-50 border-t border-gray-100">
                                 <button onClick={finalizarPedido} className="w-full flex items-center justify-between bg-green-500 hover:bg-green-600 transition-colors rounded-full px-6 py-4 shadow-sm cursor-pointer">
                                     <span className="text-[1.1rem] text-white font-bold">Fazer Pedido</span>
                                     <span className="text-[1.1rem] text-white font-bold">
