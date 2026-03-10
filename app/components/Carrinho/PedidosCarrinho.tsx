@@ -1,37 +1,59 @@
 'use client'
 import { useState } from "react";
-import { useCarrinhoStore } from "../../store/carrinho";
+import { useCarrinhoStore, useFreteStore } from "../../store/carrinho";
 import EditProduto from "./EditProduto/EditProduto";
 
 export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () => void }) {
 
     const { lista, dltCarrinho, limparCarrinho } = useCarrinhoStore();
+    const { frete, cep, addFrete } = useFreteStore();
 
     const [editModal, setEditModal] = useState(false);
     const [itemIndex, setItemIndex] = useState<number>(0);
+
+    const [inputFrete, setInputFrete] = useState<boolean>(false);
+    const [editFrete, setEditFrete] = useState<boolean>(false);
+    const [valorInput, setValorInput] = useState<string>("");
 
     const escolherEdit = (index: number) => {
         setItemIndex(index);
         setEditModal(true);
     }
 
+
     const deleteProduto = (index: number) => {
         dltCarrinho(index)
     }
+
+
+    const showInputFrete = () => {
+        setInputFrete(true)
+        // const valor = Math.floor(Math.random() * 11)
+        // addFrete(valor)
+    }
+    const calcularFrete = () => {
+        const valor = Math.floor(Math.random() * 11)
+        addFrete(valor, valorInput)
+
+        editFrete && setEditFrete(false)
+    }
+    const editarFrete = () => {
+        setEditFrete(true)
+    }
+
 
     const finalizarPedido = () => {
 
         //Post praa backend
         console.log(lista)
         //
-
         modalCarrinho()
-
         limparCarrinho()
     }
 
     // Calcular o total geral do carrinho
-    const totalGeral = lista.reduce((acumulador, item) => acumulador + item.valorTotal, 0);
+    const subtotal = lista.reduce((acumulador, item) => acumulador + item.valorTotal, 0);
+    const total = subtotal + frete
 
     return (
         //Fundo escuro/modal e alinhamento estilo aplicativo de delivery
@@ -130,24 +152,77 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                             <p className="text-gray-800 text-[1.1rem] font-medium">
                                 Taxa de Entrega
                             </p>
-                            <button className="text-green-600 font-bold text-sm cursor-pointer underline underline-offset-2">
-                                Calcular CEP
-                            </button>
+
+                            {/* Frete */}
+                            <div className="flex items-center gap-2">
+                                {frete >= 0 ?
+                                    <>
+                                        {/* Botão para editar frete */}
+                                        {editFrete ?
+                                            <>
+                                                <input
+                                                    type="text"
+                                                    onChange={(e) => { setValorInput(e.target.value) }}
+                                                    placeholder="CEP"
+                                                    className="w-28 p-1.5 text-sm text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                                    maxLength={9}
+                                                />
+                                                <button
+                                                    onClick={calcularFrete}
+                                                    className="bg-green-500 hover:bg-green-600 text-white font-bold p-1.5 px-3 rounded-lg text-sm transition-colors cursor-pointer">
+                                                    OK
+                                                </button>
+                                            </>
+                                            :
+                                            <>
+                                                <span onClick={editarFrete} className="text-gray-800 underline underline-offset-2 font-extrabold text-[1.1rem]">{cep}</span>
+                                                |
+                                                <span className="text-green-600 font-bold text-[1.1rem]">
+                                                    {frete === 0 ? "Grátis" : `R$ ${frete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                </span>
+                                            </>
+                                        }
+
+
+
+                                    </>
+                                    :
+                                    inputFrete ?
+                                        <>
+                                            <input
+                                                type="text"
+                                                onChange={(e) => { setValorInput(e.target.value) }}
+                                                placeholder="CEP"
+                                                className="w-28 p-1.5 text-sm text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                                                maxLength={9}
+                                            />
+                                            <button
+                                                onClick={calcularFrete}
+                                                className="bg-green-500 hover:bg-green-600 text-white font-bold p-1.5 px-3 rounded-lg text-sm transition-colors cursor-pointer">
+                                                OK
+                                            </button>
+                                        </>
+                                        :
+                                        <a onClick={showInputFrete} className="text-green-600 font-bold text-sm cursor-pointer underline underline-offset-2">
+                                            Calcule o frete
+                                        </a>
+                                }
+                            </div>
                         </div>
 
                         {/* Linha de Subtotal se Quiser */}
                         <div className="px-6 py-2 flex flex-col gap-2">
                             <div className="flex justify-between text-gray-600">
                                 <span>Subtotal pedidos</span>
-                                <span>R${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                <span>R${subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Taxa de entrega</span>
-                                <span>A calcular</span>
+                                <span>{frete ? `R$ ${frete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "A calcular"}</span>
                             </div>
                             <div className="flex justify-between text-black font-bold text-[1.15rem] mt-2 pt-2 border-t border-gray-200">
                                 <span>Total</span>
-                                <span>R${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                <span>R${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                             </div>
                         </div>
 
@@ -157,7 +232,7 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                                 <button onClick={finalizarPedido} className="w-full flex items-center justify-between bg-green-500 hover:bg-green-600 transition-colors rounded-full px-6 py-4 shadow-sm cursor-pointer">
                                     <span className="text-[1.1rem] text-white font-bold">Fazer Pedido</span>
                                     <span className="text-[1.1rem] text-white font-bold">
-                                        {`R$${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                        {`R$${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                     </span>
                                 </button>
                             </div>

@@ -55,3 +55,14 @@ export const useCarrinhoStore = create<Carrinho>((set) => ({
         lista: []
     }))
 }));
+
+export const useFreteStore = create<{ frete: number, cep: string, addFrete: (frete: number, cep: string) => void }>((set) => ({
+
+    cep: "",
+    frete: NaN,
+    addFrete: (frete: number, cep: string) => set(() => ({
+        frete: frete,
+        cep: cep
+    }))
+
+}));

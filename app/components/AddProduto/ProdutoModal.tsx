@@ -53,6 +53,94 @@ const INGREDIENTES_MOCK: Ingrediente[] = [{
 }];
 
 
+// Função para backdrop - seta e lógica
+// Componentes criados no mesmo arquivo devem ficar fora da função principal para não serem renderizados a todo momento
+const IconeSeta = ({ isOpen }: { isOpen: boolean }) => (
+  <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>
+    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  </div>
+);
+
+const CategoriaItem = ({ categoria, conteudo, selecionados, itemSelecionado }: {
+  categoria: string;
+  conteudo: baseIngrediente[];
+  selecionados: string[];
+  itemSelecionado: (id: string) => void;
+}) => {
+
+  const [isOpen, setIsOpen] = useState(true)
+
+  const abrirCategoria = () => setIsOpen(!isOpen)
+
+  return (
+    <>
+      <div
+        onClick={abrirCategoria}
+        className="flex justify-between items-center gap-2 cursor-pointer select-none bg-gray-100 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors mb-2"
+      >
+        <h1>{categoria}</h1>
+        {/* Passamos para a setinha o conhecimento local: ela só vira se ESSE componente foi clicado */}
+        <IconeSeta isOpen={isOpen} />
+      </div>
+
+      {isOpen && (
+        <div>
+          {(conteudo as baseIngrediente[]).map((item) => {
+            const itemId = `${categoria}-${item.id}`;
+            const takesPart = selecionados.includes(itemId);
+
+            // O texto na parte superior muda entre '*Obrigatório' e 'Opcional'
+            const statusTexto = item.obrigatorio ? "*Obrigatório" : "Opcional";
+            // Cor difere também (Obrigatório é mais escuro, opcional mais claro)
+            const statusCor = item.obrigatorio ? "text-gray-800" : "text-gray-600";
+
+            // Formatação de Preço (ex: 10 -> R$10,00)
+            const precoFormatado = `R$${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+            return (
+              //retorna um div para cada item do array
+              <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300`}>
+                <span className={`text-xs text-right mb-1 leading-none ${statusCor}`}>
+                  {statusTexto}
+                </span>
+
+                {/* Container Clicável da Opção Inteira */}
+                <div
+                  onClick={() => itemSelecionado(itemId)}
+                  className={`flex justify-between items-center p-2 -mx-2 rounded-lg cursor-pointer transition-colors
+                    ${takesPart ? 'bg-[#fafafa]' : 'bg-transparent hover:bg-gray-50'}`}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-xl text-black leading-tight">{item.nome}</span>
+                    <span className={`text-sm mt-1 ${takesPart ? 'text-gray-700' : 'text-gray-400'}`}>
+                      {item.descricao}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <span className="text-xl text-black">{precoFormatado}</span>
+
+                    {/* Lógica Visual do Checkbox: */}
+                    {takesPart ? (
+                      <div className="text-2xl">
+                        ☑
+                      </div>
+                    ) : (
+                      <div className="text-2xl">☐</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: React.Dispatch<React.SetStateAction<boolean>> }) {
 
   // store carrinho
@@ -177,55 +265,17 @@ export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: Rea
             {/* Iterando sobre as categorias do mock */}
             {Object.entries(INGREDIENTES_MOCK[0]).map(([categoria, itens]) => (
               <div key={categoria} className="mb-6">
-                <h1 className="text-2xl font-bold text-black mt-4 pb-2 ">{categoria}</h1>
-                {(itens as baseIngrediente[]).map((item) => {
-                  const itemId = `${categoria}-${item.id}`;
-                  const takesPart = selecionados.includes(itemId);
 
-                  // O texto na parte superior muda entre '*Obrigatório' e 'Opcional'
-                  const statusTexto = item.obrigatorio ? "*Obrigatório" : "Opcional";
-                  // Cor difere também (Obrigatório é mais escuro, opcional mais claro)
-                  const statusCor = item.obrigatorio ? "text-gray-800" : "text-gray-600";
+                <h1 className="text-2xl font-bold text-black mt-4 pb-2 ">
+                  <CategoriaItem
+                    key={categoria}
+                    categoria={categoria}
+                    conteudo={itens as baseIngrediente[]}
+                    selecionados={selecionados}
+                    itemSelecionado={itemSelecionado}
+                  />
+                </h1>
 
-                  // Formatação de Preço (ex: 10 -> R$10,00)
-                  const precoFormatado = `R$${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
-                  return (
-                    //retorna um div para cada item do array
-                    <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300`}>
-                      <span className={`text-xs text-right mb-1 leading-none ${statusCor}`}>
-                        {statusTexto}
-                      </span>
-
-                      {/* Container Clicável da Opção Inteira */}
-                      <div
-                        onClick={() => itemSelecionado(itemId)}
-                        className={`flex justify-between items-center p-2 -mx-2 rounded-lg cursor-pointer transition-colors
-                          ${takesPart ? 'bg-[#fafafa]' : 'bg-transparent hover:bg-gray-50'}`}
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-xl text-black leading-tight">{item.nome}</span>
-                          <span className={`text-sm mt-1 ${takesPart ? 'text-gray-700' : 'text-gray-400'}`}>
-                            {item.descricao}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <span className="text-xl text-black">{precoFormatado}</span>
-
-                          {/* Lógica Visual do Checkbox: */}
-                          {takesPart ? (
-                            <div className="text-2xl">
-                              ☑
-                            </div>
-                          ) : (
-                            <div className="text-2xl">☐</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             ))}
 

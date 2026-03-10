@@ -4,7 +4,7 @@ import { lazy, useEffect, useState } from "react";
 
 import { useCarrinhoStore } from "../../store/carrinho";
 
-export default function Carrinho(
+export default function IconeCarrinho(
     { carrinhoAberto, setCarrinhoAberto }: { carrinhoAberto: boolean, setCarrinhoAberto: React.Dispatch<React.SetStateAction<boolean>> }) {
     // Estado para controlar a animação inicial quando aparece na tela
     const [animateIn, setAnimateIn] = useState(false);
