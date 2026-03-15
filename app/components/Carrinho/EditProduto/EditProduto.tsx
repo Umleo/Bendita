@@ -1,132 +1,114 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useCarrinhoStore } from '@/app/store/carrinho';
-import { Pedido } from '@/app/components/AddProduto/ProdutoModal';
-
-// Tipagem de exemplo para os ingredientes (mesma do ProdutoModal)
-type baseIngrediente = {
-    id: number;
-    nome: string;
-    descricao: string;
-    preco: number;
-    obrigatorio: boolean;
-};
-
-type Ingrediente = {
-    Proteinas: baseIngrediente[],
-    Acompanhamentos: baseIngrediente[],
-    Frutas: baseIngrediente[]
-};
-
-// Dados mockados (Geralmente isso viria de um DB ou API)
-const INGREDIENTES_MOCK: Ingrediente[] = [{
-    Proteinas: [
-        { id: 1, nome: 'Proteínas', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
-        { id: 2, nome: 'preotirnas', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
-        { id: 3, nome: 'Proteinas 2', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
-        { id: 4, nome: 'preteina 3', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
-    ],
-    Acompanhamentos: [
-        { id: 1, nome: 'Acompanha', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
-        { id: 2, nome: 'Acompanhamento', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
-        { id: 3, nome: 'Acompanhando', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
-        { id: 4, nome: 'Acompanhou', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
-    ],
-    Frutas: [
-        { id: 1, nome: 'Fruta', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
-        { id: 2, nome: 'Frutas', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
-        { id: 3, nome: 'frutindo', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
-        { id: 4, nome: 'frutando', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
-    ]
-}];
+import { Pedido, baseIngrediente, INGREDIENTES_MOCK } from '@/app/components/AddProduto/ProdutoModal';
 
 // Função para backdrop - seta e lógica
 // Componentes criados no mesmo arquivo devem ficar fora da função principal para não serem renderizados a todo momento
 const IconeSeta = ({ isOpen }: { isOpen: boolean }) => (
     <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m6 9 6 6 6-6" />
-      </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6" />
+        </svg>
     </div>
-  );
-  
-  const CategoriaItem = ({ categoria, conteudo, selecionados, itemSelecionado }: {
+);
+
+const CategoriaItem = ({ categoria, limite, obrigatorio, conteudo, selecionados, itemSelecionado }: {
     categoria: string;
+    limite: number;
+    obrigatorio: boolean;
     conteudo: baseIngrediente[];
     selecionados: string[];
     itemSelecionado: (id: string) => void;
-  }) => {
-  
+}) => {
+
     const [isOpen, setIsOpen] = useState(true)
-  
+
     const abrirCategoria = () => setIsOpen(!isOpen)
-  
+
+    const itensDestaCategoria = selecionados.filter(itemId => itemId.startsWith(`${categoria}`));
+    const limiteAtingido = itensDestaCategoria.length >= limite;
+
+    const click = (id: string) => {
+        if (limiteAtingido && !selecionados.includes(id)) {
+            return;
+        }
+        itemSelecionado(id);
+    }
+
+    const statusTexto = obrigatorio ? "*Obrigatório" : "Opcional";
+    const statusCor = obrigatorio ? "text-gray-800" : "text-gray-600";
+
     return (
-      <>
-        <div
-          onClick={abrirCategoria}
-          className="flex justify-between items-center gap-2 cursor-pointer select-none bg-gray-100 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors mb-2"
-        >
-          <h1>{categoria}</h1>
-          {/* Passamos para a setinha o conhecimento local: ela só vira se ESSE componente foi clicado */}
-          <IconeSeta isOpen={isOpen} />
-        </div>
-  
-        {isOpen && (
-          <div>
-            {(conteudo as baseIngrediente[]).map((item) => {
-              const itemId = `${categoria}-${item.id}`;
-              const takesPart = selecionados.includes(itemId);
-  
-              // O texto na parte superior muda entre '*Obrigatório' e 'Opcional'
-              const statusTexto = item.obrigatorio ? "*Obrigatório" : "Opcional";
-              // Cor difere também (Obrigatório é mais escuro, opcional mais claro)
-              const statusCor = item.obrigatorio ? "text-gray-800" : "text-gray-600";
-  
-              // Formatação de Preço (ex: 10 -> R$10,00)
-              const precoFormatado = `R$${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-  
-              return (
-                //retorna um div para cada item do array
-                <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300`}>
-                  <span className={`text-xs text-right mb-1 leading-none ${statusCor}`}>
-                    {statusTexto}
-                  </span>
-  
-                  {/* Container Clicável da Opção Inteira */}
-                  <div
-                    onClick={() => itemSelecionado(itemId)}
-                    className={`flex justify-between items-center p-2 -mx-2 rounded-lg cursor-pointer transition-colors
-                      ${takesPart ? 'bg-[#fafafa]' : 'bg-transparent hover:bg-gray-50'}`}
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-xl text-black leading-tight">{item.nome}</span>
-                      <span className={`text-sm mt-1 ${takesPart ? 'text-gray-700' : 'text-gray-400'}`}>
-                        {item.descricao}
-                      </span>
-                    </div>
-  
-                    <div className="flex items-center gap-4">
-                      <span className="text-xl text-black">{precoFormatado}</span>
-  
-                      {/* Lógica Visual do Checkbox: */}
-                      {takesPart ? (
-                        <div className="text-2xl">
-                          ☑
-                        </div>
-                      ) : (
-                        <div className="text-2xl">☐</div>
-                      )}
-                    </div>
-                  </div>
+        <>
+            <div
+                onClick={abrirCategoria}
+                className="flex justify-between items-center gap-2 cursor-pointer select-none bg-gray-100 py-3 px-3 sm:px-4 rounded-xl hover:bg-gray-200 transition-colors mb-2"
+            >
+                <div className="flex items-baseline gap-1.5 sm:gap-2 shrink flex-wrap sm:flex-nowrap">
+                    <h1 className="text-lg font-bold leading-tight">{categoria}</h1>
+                    <span className="text-[11px] sm:text-xs font-normal text-gray-500 whitespace-nowrap shrink-0">
+                        {limite === 1 ? '(Até 1 opção)' : `(Até ${limite} opções)`}
+                    </span>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </>
+                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                    <span className={`text-[11px] sm:text-sm font-bold whitespace-nowrap ${statusCor}`}>
+                        {statusTexto}
+                    </span>
+                    {/* Passamos para a setinha o conhecimento local: ela só vira se ESSE componente foi clicado */}
+                    <IconeSeta isOpen={isOpen} />
+                </div>
+            </div>
+
+            {isOpen && (
+                <div>
+                    {(conteudo as baseIngrediente[]).map((item) => {
+                        const itemId = `${categoria}-${item.id}`;
+                        const takesPart = selecionados.includes(itemId);
+                        const isDisabled = limiteAtingido && !takesPart;
+
+                        // Formatação de Preço (ex: 10 -> R$10,00)
+                        const precoFormatado = `R$${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+
+                        return (
+                            //retorna um div para cada item do array
+                            <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300 transition-opacity duration-200 ${isDisabled ? 'opacity-40' : 'opacity-100'}`}>
+
+                                {/* Container Clicável da Opção Inteira */}
+                                <div
+                                    onClick={() => click(itemId)}
+                                    className={`flex justify-between items-center p-2 -mx-2 rounded-lg transition-colors
+                                    ${takesPart ? 'bg-[#fafafa]' : 'bg-transparent'}
+                                    ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}
+                                >
+                                    <div className="flex flex-col">
+                                        <span className={`text-xl leading-tight ${isDisabled ? 'text-gray-500' : 'text-black'}`}>{item.nome}</span>
+                                        <span className={`text-sm mt-1 ${takesPart ? 'text-gray-700' : 'text-gray-400'}`}>
+                                            {item.descricao}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <span className={`text-xl ${isDisabled ? 'text-gray-500' : 'text-black'}`}>{precoFormatado}</span>
+
+                                        {/* Lógica Visual do Checkbox: */}
+                                        {takesPart ? (
+                                            <div className="text-2xl">
+                                                ☑
+                                            </div>
+                                        ) : (
+                                            <div className={`text-2xl ${isDisabled ? 'text-gray-400' : 'text-black'}`}>☐</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </>
     );
-  }
+}
 
 export default function EditProduto({
     setEditModal,
@@ -158,8 +140,9 @@ export default function EditProduto({
             const idsRestaurados: string[] = [];
 
             itemParaEditar.ingredientes.forEach(nomeIngrediente => {
+                const [itemCat, itemNome] = nomeIngrediente.split(' - '); // Because mapped as "categoria - nome"
                 Object.entries(INGREDIENTES_MOCK[0]).forEach(([categoria, itens]) => {
-                    const matchedItem = (itens as baseIngrediente[]).find(i => i.nome === nomeIngrediente);
+                    const matchedItem = (itens.opções as baseIngrediente[]).find(i => i.nome === (itemNome || nomeIngrediente) && i.categoria === (itemCat || categoria));
                     if (matchedItem) {
                         idsRestaurados.push(`${categoria}-${matchedItem.id}`);
                     }
@@ -189,7 +172,7 @@ export default function EditProduto({
     const valorfinal = selecionados.reduce((total, selId) => {
         const [categoria, idStr] = selId.split('-');
         const id = parseInt(idStr, 10);
-        const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.find((i: baseIngrediente) => i.id === id);
+        const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.opções?.find((i: baseIngrediente) => i.id === id);
         return total + (item ? item.preco : 0);
     }, 0);
 
@@ -203,8 +186,8 @@ export default function EditProduto({
             ingredientes: selecionados.map((selId) => {
                 const [categoria, idStr] = selId.split('-');
                 const id = parseInt(idStr, 10);
-                const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.find((i: baseIngrediente) => i.id === id);
-                return item ? item.nome : '';
+                const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.opções?.find((i: baseIngrediente) => i.id === id);
+                return item ? `${item.categoria} - ${item.nome}` : '';
             }).filter(Boolean),
             qtd: mult,
             valorTotal: valorfinal * mult
@@ -215,9 +198,27 @@ export default function EditProduto({
 
     // 5. SALVAR NO STORE (Em construção)
     const salvarEdicao = () => {
-        // ATENÇÃO: Precisaremos de uma função "updateCarrinho" lá no seu `store/carrinho.ts` 
-        // para atualizar o indice X e não simplesmente adicionar como se fosse um novo.
-        // Por enquanto, vou apenas fechar o modal.
+
+        const alertas: string[] = [];
+
+        Object.entries(INGREDIENTES_MOCK[0]).forEach(([categoria, itens]) => {
+            if (itens.obrigatorio) {
+                const qtdSelecionada = pedido?.ingredientes.filter(ingrediente =>
+                    ingrediente.startsWith(`${categoria} - `)
+                ).length || 0;
+
+                const minimoRequerido = itens.minimo || 1;
+
+                if (qtdSelecionada < minimoRequerido) {
+                    alertas.push(`- ${categoria} (mínimo de ${minimoRequerido} opç${minimoRequerido > 1 ? 'ões' : 'ão'})`);
+                }
+            }
+        });
+
+        if (alertas.length > 0) {
+            return alert(`Por favor, complete as seguintes opções obrigatórias:\n\n${alertas.join('\n')}`);
+        }
+
         attCarrinho(pedido!, itemIndex)
         setEditModal(false);
     }
@@ -265,7 +266,9 @@ export default function EditProduto({
                                     <CategoriaItem
                                         key={categoria}
                                         categoria={categoria}
-                                        conteudo={itens as baseIngrediente[]}
+                                        obrigatorio={itens.obrigatorio}
+                                        limite={itens.maximo || itens.opções.length}
+                                        conteudo={itens.opções}
                                         selecionados={selecionados}
                                         itemSelecionado={itemSelecionado}
                                     />

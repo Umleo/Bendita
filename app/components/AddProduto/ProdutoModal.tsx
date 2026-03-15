@@ -1,22 +1,24 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useCarrinhoStore } from '@/app/store/carrinho';
+import ListaItems from './ListaItems';
+import { useItemSelecionado } from '@/app/store/pedido';
 
 // Tipagem de exemplo para os ingredientes
 
-type baseIngrediente = {
+export type baseIngrediente = {
   id: number;
   nome: string;
+  categoria: string;
   descricao: string;
   preco: number;
-  obrigatorio: boolean;
 }
 
-type Ingrediente = {
-  Proteinas: baseIngrediente[],
-  Acompanhamentos: baseIngrediente[],
-  Frutas: baseIngrediente[]
-};
+export type Ingrediente = {
+  Proteínas: { opções: baseIngrediente[], obrigatorio: boolean, minimo?: number, maximo?: number },
+  Acompanhamento: { opções: baseIngrediente[], obrigatorio: boolean, minimo?: number, maximo?: number },
+  Frutas: { opções: baseIngrediente[], obrigatorio: boolean, minimo?: number, maximo?: number }
+}
 
 export type Pedido = {
   valorTotal: number;
@@ -24,153 +26,87 @@ export type Pedido = {
   ingredientes: string[];
 }
 
-// Criar função do botao adicionar ao carrinho
-// Criar variavel que assume interface carrinho
-// definiir ingredientes igual na função addIngredientes
-// definir demais valores atraves de pedido.[valor].
-
-
 // Dados mockados para iterar e gerar os itens interativos
-const INGREDIENTES_MOCK: Ingrediente[] = [{
-  Proteinas: [
-    { id: 1, nome: 'Proteínas', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
-    { id: 2, nome: 'preotirnas', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
-    { id: 3, nome: 'Proteinas 2', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
-    { id: 4, nome: 'preteina 3', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
-  ],
-  Acompanhamentos: [
-    { id: 1, nome: 'Acompanha', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
-    { id: 2, nome: 'Acompanhamento', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
-    { id: 3, nome: 'Acompanhando', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
-    { id: 4, nome: 'Acompanhou', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
-  ],
-  Frutas: [
-    { id: 1, nome: 'Fruta', descricao: 'Item para a salada', preco: 10, obrigatorio: true },
-    { id: 2, nome: 'Frutas', descricao: 'Item para a salada', preco: 5, obrigatorio: false },
-    { id: 3, nome: 'frutindo', descricao: 'Item para a salada', preco: 2, obrigatorio: false },
-    { id: 4, nome: 'frutando', descricao: 'Item para a salada', preco: 1, obrigatorio: false },
-  ]
+export const INGREDIENTES_MOCK: Ingrediente[] = [{
+  Proteínas: {
+    opções: [
+      { id: 1, nome: 'carrne', categoria: 'Proteínas', descricao: 'Item para a salada', preco: 10 },
+      { id: 2, nome: 'frango', categoria: 'Proteínas', descricao: 'Item para a salada', preco: 5 },
+      { id: 3, nome: 'frango 2', categoria: 'Proteínas', descricao: 'Item para a salada', preco: 2 },
+      { id: 4, nome: 'frango 3', categoria: 'Proteínas', descricao: 'Item para a salada', preco: 1 },
+    ], obrigatorio: true, minimo: 2, maximo: 3
+  },
+  Acompanhamento: {
+    opções: [
+      { id: 1, nome: 'arroz', categoria: 'Acompanhamento', descricao: 'Item para a salada', preco: 10 },
+      { id: 2, nome: 'feijao', categoria: 'Acompanhamento', descricao: 'Item para a salada', preco: 5 },
+      { id: 3, nome: 'feijao 2', categoria: 'Acompanhamento', descricao: 'Item para a salada', preco: 2 },
+      { id: 4, nome: 'tomate', categoria: 'Acompanhamento', descricao: 'Item para a salada', preco: 1 },
+    ], obrigatorio: true, minimo: 1, maximo: 2
+  },
+  Frutas: {
+    opções: [
+      { id: 1, nome: 'uva', categoria: 'Frutas', descricao: 'Item para a salada', preco: 10 },
+      { id: 2, nome: 'maca', categoria: 'Frutas', descricao: 'Item para a salada', preco: 5 },
+      { id: 3, nome: 'abacate', categoria: 'Frutas', descricao: 'Item para a salada', preco: 2 },
+      { id: 4, nome: 'coco', categoria: 'Frutas', descricao: 'Item para a salada', preco: 1 },
+    ], obrigatorio: false
+  },
 }];
 
 
-// Função para backdrop - seta e lógica
-// Componentes criados no mesmo arquivo devem ficar fora da função principal para não serem renderizados a todo momento
-const IconeSeta = ({ isOpen }: { isOpen: boolean }) => (
-  <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}>
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  </div>
-);
-
-const CategoriaItem = ({ categoria, conteudo, selecionados, itemSelecionado }: {
-  categoria: string;
-  conteudo: baseIngrediente[];
-  selecionados: string[];
-  itemSelecionado: (id: string) => void;
-}) => {
-
-  const [isOpen, setIsOpen] = useState(true)
-
-  const abrirCategoria = () => setIsOpen(!isOpen)
-
-  return (
-    <>
-      <div
-        onClick={abrirCategoria}
-        className="flex justify-between items-center gap-2 cursor-pointer select-none bg-gray-100 py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors mb-2"
-      >
-        <h1>{categoria}</h1>
-        {/* Passamos para a setinha o conhecimento local: ela só vira se ESSE componente foi clicado */}
-        <IconeSeta isOpen={isOpen} />
-      </div>
-
-      {isOpen && (
-        <div>
-          {(conteudo as baseIngrediente[]).map((item) => {
-            const itemId = `${categoria}-${item.id}`;
-            const takesPart = selecionados.includes(itemId);
-
-            // O texto na parte superior muda entre '*Obrigatório' e 'Opcional'
-            const statusTexto = item.obrigatorio ? "*Obrigatório" : "Opcional";
-            // Cor difere também (Obrigatório é mais escuro, opcional mais claro)
-            const statusCor = item.obrigatorio ? "text-gray-800" : "text-gray-600";
-
-            // Formatação de Preço (ex: 10 -> R$10,00)
-            const precoFormatado = `R$${item.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-
-            return (
-              //retorna um div para cada item do array
-              <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300`}>
-                <span className={`text-xs text-right mb-1 leading-none ${statusCor}`}>
-                  {statusTexto}
-                </span>
-
-                {/* Container Clicável da Opção Inteira */}
-                <div
-                  onClick={() => itemSelecionado(itemId)}
-                  className={`flex justify-between items-center p-2 -mx-2 rounded-lg cursor-pointer transition-colors
-                    ${takesPart ? 'bg-[#fafafa]' : 'bg-transparent hover:bg-gray-50'}`}
-                >
-                  <div className="flex flex-col">
-                    <span className="text-xl text-black leading-tight">{item.nome}</span>
-                    <span className={`text-sm mt-1 ${takesPart ? 'text-gray-700' : 'text-gray-400'}`}>
-                      {item.descricao}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <span className="text-xl text-black">{precoFormatado}</span>
-
-                    {/* Lógica Visual do Checkbox: */}
-                    {takesPart ? (
-                      <div className="text-2xl">
-                        ☑
-                      </div>
-                    ) : (
-                      <div className="text-2xl">☐</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </>
-  );
-}
 
 export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: React.Dispatch<React.SetStateAction<boolean>> }) {
 
   // store carrinho
-  const { lista, addCarrinho } = useCarrinhoStore();
+  const { addCarrinho } = useCarrinhoStore();
 
   //gerais do pedido: qtd e valor
   const [pedido, setPedido] = useState<Pedido>();
 
-  // Estado para armazenar os IDs dos itens selecionados (agora com categoria-id)
-  const [selecionados, setSelecionados] = useState<string[]>([]);
+  const [selecionadosParaPedido, setSelecionadosParaPedido] = useState<string[]>([]);
 
-
-  // Função para lidar com o clique em um item
-  const itemSelecionado = (id: string) => {
-    setSelecionados((prev) =>
-      prev.includes(id) //se id estiver incluso no array retorna true
-        ? prev.filter((itemId) => itemId !== id) // Se "true", filtra do array
-        //filter vai criar um novo array com tudo que retornar true de sua condição.
-        //neste caso, tudo que for "!==" diferente do nosso id, será (true)incluido nesse novo array.
-        : [...prev, id] // Se "false", adiciona ao array
-    );
-  };
+  const { selecionados, limparSelecionados } = useItemSelecionado();
 
 
   // Função para adicionar o pedido ao carrinho
   const adicionaCarrinho = () => {
+
+    // 1. Array para guardar os alertas das categorias que não atingiram o mínimo
+    const alertas: string[] = [];
+
+    // 2. Iterar sobre todas as categorias obrigatórias
+    //pega um objeto e separa em dois, chave e valor. No caso categoria como string, e valor como um objeto com as opções.
+    Object.entries(INGREDIENTES_MOCK[0]).forEach(([categoria, itens]) => {
+      if (itens.obrigatorio) {
+        // Encontra quantos itens dessa categoria estão no pedido
+        const qtdSelecionada = pedido?.ingredientes.filter(ingrediente =>
+          ingrediente.startsWith(`${categoria} - `)
+        ).length || 0;
+
+        const minimoRequerido = itens.minimo || 1;
+
+        // Se selecionou menos que o mínimo, adiciona à lista de alertas
+        if (qtdSelecionada < minimoRequerido) {
+          alertas.push(`- ${categoria} (mínimo de ${minimoRequerido} opç${minimoRequerido > 1 ? 'ões' : 'ão'})`);
+        }
+      }
+    });
+
+    // 3. Se houver alguma categoria faltando ou incompleta, exibe o alerta e barra
+    if (alertas.length > 0) {
+      return alert(`Por favor, complete as seguintes opções obrigatórias:\n\n${alertas.join('\n')}`);
+    }
+
     addCarrinho!(pedido!)
+    
+    // Para limpar o pedido de fato, precisamos limpar os estados que formam o pedido
+    limparSelecionados();       // Limpa o store do Zustand
+    setSelecionadosParaPedido([]);   // Limpa o array local
+    setMult(1);                 // Reseta o multiplicador
+
     setProdutoModal(false)
   }
-
 
   // array.reduce((acumulador, itemAtual) => novoValor, valorInicial)
   // reduce() serve para tranformar o array em um unico valor
@@ -180,9 +116,10 @@ export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: Rea
   const valorfinal = selecionados.reduce((total, selId) => {
     const [categoria, idStr] = selId.split('-');
     const id = parseInt(idStr, 10);
-    const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.find((i: baseIngrediente) => i.id === id);
+    const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.opções?.find((i: baseIngrediente) => i.id === id);
     return total + (item ? item.preco : 0);
   }, 0);
+
 
   // Lidando com os pedidos
   const [mult, setMult] = useState<number>(1);
@@ -191,25 +128,31 @@ export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: Rea
 
   const subtrair = () => { setMult(mult - 1); }
 
+  // Este useEffect "assiste" as variáveis `mult` (multiplicador) e `valorfinal`.
+  // LÓGICA DE RESET: Quando o multiplicador (`mult`) chega a 0 (via botão "subtrair"),
+  // o sistema entende que o usuário desistiu das seleções atuais e limpa o formulário inteiro.
   useEffect(() => {
     if (mult <= 0) {
-      setSelecionados([]);
-      setMult(1);
+      limparSelecionados();       // 1. Limpa o array global da Store Zustand
+      setSelecionadosParaPedido([]);   // 2. Limpa o array local do Modal
+      setMult(1);                 // 3. Reseta o multiplicador de volta pra 1 (evita mostrar quantidade zero no UI)
     }
     const pedido: Pedido = {
       //precisamos passar ! para indicar ao TS que o valor retornado não sera undefined.
-      ingredientes: selecionados.map((selId) => {
+      ingredientes: selecionadosParaPedido.map((selId) => {
         const [categoria, idStr] = selId.split('-');
         const id = parseInt(idStr, 10);
-        const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.find((i: baseIngrediente) => i.id === id);
-        return item ? item.nome : '';
+        const item = (INGREDIENTES_MOCK[0] as any)[categoria]?.opções?.find((i: baseIngrediente) => i.id === id);
+        return item ? `${item.categoria} - ${item.nome}` : '';
       }).filter(Boolean),
       qtd: mult,
       valorTotal: valorfinal * mult
     }
-    setPedido(pedido);
 
+    setPedido(pedido);
+    console.log(pedido)
   }, [mult, valorfinal]);
+
 
 
   return (
@@ -256,7 +199,7 @@ export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: Rea
               Caixa inteiriça e com fundo cinza discreto para separar seções */}
           <div className="w-full bg-[#f0f0f0] py-4 px-6 mb-2">
             <p className="text-center text-gray-800 text-[1.15rem]">
-              Escolha x quantidade de opções
+              Selecione seus ingredientes abaixo
             </p>
           </div>
 
@@ -267,12 +210,14 @@ export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: Rea
               <div key={categoria} className="mb-6">
 
                 <h1 className="text-2xl font-bold text-black mt-4 pb-2 ">
-                  <CategoriaItem
+                  <ListaItems
                     key={categoria}
+                    obrigatorio={itens.obrigatorio}
                     categoria={categoria}
-                    conteudo={itens as baseIngrediente[]}
-                    selecionados={selecionados}
-                    itemSelecionado={itemSelecionado}
+                    limite={itens.maximo || itens.opções.length} // Passando limite dinâmico de acordo com a categoria
+                    conteudo={itens.opções}
+                    selecionadosParaPedido={selecionadosParaPedido}
+                    setSelecionadosParaPedido={setSelecionadosParaPedido}
                   />
                 </h1>
 

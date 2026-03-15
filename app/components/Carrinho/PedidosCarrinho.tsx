@@ -43,9 +43,13 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
 
 
     const finalizarPedido = () => {
-
+        if (Number.isNaN(frete)) {
+            alert("Calcule o frete")
+            return
+        }
+        const valorTotalCarrinho = lista.reduce((acumulador, item) => acumulador + item.valorTotal, 0) + frete;
         //Post praa backend
-        console.log(lista)
+        console.log(lista, valorTotalCarrinho)
         //
         modalCarrinho()
         limparCarrinho()
@@ -218,12 +222,19 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Taxa de entrega</span>
-                                <span>{frete ? `R$ ${frete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "A calcular"}</span>
+                                <span>{frete >= 0 ? `R$ ${frete.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "A calcular"}</span>
                             </div>
-                            <div className="flex justify-between text-black font-bold text-[1.15rem] mt-2 pt-2 border-t border-gray-200">
-                                <span>Total</span>
-                                <span>R${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                            </div>
+                            {!total ?
+                                <div className="flex justify-between text-black font-bold text-[1.15rem] mt-2 pt-2 border-t border-gray-200">
+                                    <span>Total</span>
+                                    <span>R${subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                                :
+                                <div className="flex justify-between text-black font-bold text-[1.15rem] mt-2 pt-2 border-t border-gray-200">
+                                    <span>Total</span>
+                                    <span>R${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                            }
                         </div>
 
                         {/* 6. BOTÃO VERDE FINAL (Fixo embaixo, estilo iFood) */}
@@ -231,9 +242,15 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
                             <div className="w-full bg-white p-2 pb-6 sm:p-5 sm:pb-8 z-50 border-t border-gray-100">
                                 <button onClick={finalizarPedido} className="w-full flex items-center justify-between bg-green-500 hover:bg-green-600 transition-colors rounded-full px-6 py-4 shadow-sm cursor-pointer">
                                     <span className="text-[1.1rem] text-white font-bold">Fazer Pedido</span>
-                                    <span className="text-[1.1rem] text-white font-bold">
-                                        {`R$${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                                    </span>
+                                    {!total ?
+                                        <span className="text-[1.1rem] text-white font-bold">
+                                            {`R$${subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                        </span>
+                                        :
+                                        <span className="text-[1.1rem] text-white font-bold">
+                                            {`R$${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                        </span>
+                                    }
                                 </button>
                             </div>
                         )}
