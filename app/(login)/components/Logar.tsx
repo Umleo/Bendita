@@ -17,7 +17,7 @@ export default function Logar({ setNoPassword, setIsLogin }:
             email: email, // required
             password: password, // required
             rememberMe: true,
-            callbackURL: "http://localhost:3000/",
+            callbackURL: "https://bendita.vercel.app/",
         });
     }
 
