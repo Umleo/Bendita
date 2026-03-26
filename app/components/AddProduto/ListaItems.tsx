@@ -97,7 +97,6 @@ export default function ListaItems({ categoria, limite, conteudo, selecionadosPa
 
                         return (
                             //retorna um div para cada item do array
-
                             <div key={item.id} className={`flex flex-col py-2 border-b border-gray-300 transition-opacity duration-200 ${isDisabled ? 'opacity-40' : 'opacity-100'}`}>
 
                                 {/* Container Clicável da Opção Inteira */}

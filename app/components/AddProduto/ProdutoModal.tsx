@@ -99,7 +99,7 @@ export default function ProdutoModal({ setProdutoModal }: { setProdutoModal: Rea
     }
 
     addCarrinho!(pedido!)
-    
+
     // Para limpar o pedido de fato, precisamos limpar os estados que formam o pedido
     limparSelecionados();       // Limpa o store do Zustand
     setSelecionadosParaPedido([]);   // Limpa o array local

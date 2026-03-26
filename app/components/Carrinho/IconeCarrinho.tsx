@@ -3,11 +3,13 @@
 import { lazy, useEffect, useState } from "react";
 
 import { useCarrinhoStore } from "../../store/carrinho";
+import PedidosCarrinho from "./PedidosCarrinho";
 
-export default function IconeCarrinho(
-    { carrinhoAberto, setCarrinhoAberto }: { carrinhoAberto: boolean, setCarrinhoAberto: React.Dispatch<React.SetStateAction<boolean>> }) {
+export default function IconeCarrinho() {
     // Estado para controlar a animação inicial quando aparece na tela
     const [animateIn, setAnimateIn] = useState(false);
+
+    const [carrinhoAberto, setCarrinhoAberto] = useState(false);
 
     const { lista } = useCarrinhoStore();
 
@@ -84,6 +86,11 @@ export default function IconeCarrinho(
                     {lista.length}
                 </span>
             </button>
+
+            {carrinhoAberto &&
+                <PedidosCarrinho modalCarrinho={() => setCarrinhoAberto(false)} />
+            }
+
         </>
     );
 }

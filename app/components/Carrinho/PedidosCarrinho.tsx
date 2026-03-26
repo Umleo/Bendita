@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useCarrinhoStore, useFreteStore } from "../../store/carrinho";
 import EditProduto from "./EditProduto/EditProduto";
+import { authClient } from "@/app/lib/auth-client";
+import { useRouter } from "next/navigation";
 
 export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () => void }) {
 
@@ -14,6 +16,9 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
     const [inputFrete, setInputFrete] = useState<boolean>(false);
     const [editFrete, setEditFrete] = useState<boolean>(false);
     const [valorInput, setValorInput] = useState<string>("");
+
+    const session = authClient.useSession()
+    const router = useRouter()
 
     const escolherEdit = (index: number) => {
         setItemIndex(index);
@@ -42,15 +47,23 @@ export default function PedidosCarrinho({ modalCarrinho }: { modalCarrinho: () =
     }
 
 
+
     const finalizarPedido = () => {
         if (Number.isNaN(frete)) {
             alert("Calcule o frete")
             return
         }
         const valorTotalCarrinho = lista.reduce((acumulador, item) => acumulador + item.valorTotal, 0) + frete;
+
+        if (!session.data) {
+            alert("Você precisa estar logado para finalizar o pedido")
+            return
+        }
+
         //Post praa backend
         console.log(lista, valorTotalCarrinho)
         //
+
         modalCarrinho()
         limparCarrinho()
     }

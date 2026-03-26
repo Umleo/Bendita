@@ -1,3 +1,10 @@
+'use client'
+
+import { useState } from "react";
+import ProdutoModal from "./ProdutoModal";
+import { useCarrinhoStore } from "@/app/store/carrinho";
+import IconeCarrinho from "../Carrinho/IconeCarrinho";
+
 const SaladPlaceholder = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11l-1.06-1.06a1.5 1.5 0 010-2.12l.21-.21a1.5 1.5 0 012.12 0L12 8.586l.73-.73a1.5 1.5 0 012.12 0l.21.21a1.5 1.5 0 010 2.12L14 11m-4 0h4" />
@@ -6,7 +13,11 @@ const SaladPlaceholder = () => (
 );
 
 
-export default function Produto({ setProdutoModal }: { setProdutoModal: React.Dispatch<React.SetStateAction<boolean>> }) {
+export default function Produto() {
+
+    const [produtoModal, setProdutoModal] = useState(false);
+
+    const { lista } = useCarrinhoStore()
 
     return (
         <>
@@ -32,6 +43,16 @@ export default function Produto({ setProdutoModal }: { setProdutoModal: React.Di
                     </div>
                 </div>
             </div>
+
+            {produtoModal &&
+                <ProdutoModal
+                    setProdutoModal={setProdutoModal}
+                />
+            }
+
+            {lista.length > 0 && produtoModal === false &&
+                <IconeCarrinho />
+            }
 
         </>
     )
