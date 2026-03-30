@@ -31,7 +31,7 @@ export const auth = betterAuth({
                 if (type === "email-verification") {
                     // Send the OTP for email verification
                     await resend.emails.send({
-                        from: "Bendita Auth <onboarding@resend.dev>",
+                        from: "Bendita Auth <onboarding@onlinemuller.codes>",
                         to: email,
                         subject: "Seu código de verificação",
                         html: `<h1>Seu código é: <strong>${otp}</strong></h1>`,
