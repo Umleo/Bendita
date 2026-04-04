@@ -65,20 +65,20 @@ export default function Login({ session }: { session: SessionType | null }) {
                                 {/* User Profile Card */}
                                 <div className="flex items-center gap-3 p-2.5 bg-gray-50/80 rounded-2xl border border-gray-100 shadow-sm">
                                     <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-base shadow-sm shrink-0">
-                                        {session.user.name?.charAt(0).toUpperCase() || "U"}
+                                        {session?.user.name?.charAt(0).toUpperCase() || "U"}
                                     </div>
                                     <div className="flex flex-col overflow-hidden pr-2">
                                         <span className="font-semibold text-gray-800 text-sm truncate leading-tight">
-                                            {session.user.name}
+                                            {session?.user.name}
                                         </span>
                                         <span className="text-xs text-gray-500 truncate mt-0.5">
-                                            {session.user.email}
+                                            {session?.user.email}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Container flexível para futuro conteúdo do usuário (ex: Meus Pedidos, Cupons, etc) */}
-                                <Link href={`/you/${session.user.id}`} className="flex-1 flex flex-col gap-2 min-h-5">
+                                <Link href={`/you/${session?.user.id}`} className="flex-1 flex flex-col gap-2 min-h-5">
                                     <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 px-1">
                                         Endereço cadastrado
                                     </h3>
