@@ -1,27 +1,40 @@
 import { authClient } from "@/app/lib/auth-client";
 import { useForm } from "react-hook-form"
+import "dotenv/config";
+import { useNoPassword } from "../store/cadastro";
+
 
 export default function Logar({ setNoPassword, setIsLogin }:
     {
         setNoPassword: (value: boolean) => void,
         setIsLogin: (value: boolean) => void
-    }) {
+    }) 
+    {
+    
+    const { setEmail } = useNoPassword()
 
-    const { register, handleSubmit, formState: { errors } } = useForm()
-
+    const { register, handleSubmit, formState: { errors }, getValues } = useForm()
+    
     async function logarUser(data: any) {
-
+        
         const { email, password } = data
-
+        
         await authClient.signIn.email({
             email: email, // required
             password: password, // required
             rememberMe: true,
-            callbackURL: "https://bendita.vercel.app/",
+            callbackURL: process.env.NEXT_PUBLIC_URL_HOME
         });
+
     }
 
     function esqueciSenha() {
+
+        const email = getValues("email");
+
+        if (email) {
+            setEmail(email)
+        }
         setIsLogin(false)
         setNoPassword(true)
     }
@@ -42,7 +55,7 @@ export default function Logar({ setNoPassword, setIsLogin }:
                 <div className="space-y-1.5">
                     <div className="flex items-center justify-between ml-1">
                         <label className="text-sm font-semibold text-slate-600">Senha</label>
-                        <a href="#"
+                        <a
                             onClick={esqueciSenha}
                             className="text-xs font-semibold text-blue-500 hover:text-blue-700 hover:underline transition-colors">
                             Esqueceu a senha?

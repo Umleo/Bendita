@@ -13,15 +13,22 @@ datasource db {
 }
 
 model User {
-  id            String    @id
+  id            String     @id
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean    @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
   sessions      Session[]
   accounts      Account[]
+  enderecos     Endereco[]
+
+  //admin fields
+  role       String    @default("user")
+  banned     Boolean?
+  banReason  String?
+  banExpires DateTime?
 
   @@unique([email])
   @@map("user")
@@ -73,4 +80,18 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Endereco {
+  id          String  @id @default(uuid())
+  titulo      String
+  rua         String
+  numero      String
+  bairro      String
+  complemento String?
+  cep         String
+
+  //fk com user
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

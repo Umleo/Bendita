@@ -2,24 +2,18 @@
 
 import { useState } from "react";
 import Logar from "../components/Logar";
-import Registro from "../components/Registro";
-import Verificar from "../components/Verificar";
 import NoPassword from "../components/noPassword";
+import Link from "next/dist/client/link";
 
 export default function Login() {
     const [isLogin, setIsLogin] = useState(true);
     const [noPassword, setNoPassword] = useState(false);
-    const [verificar, setVerificar] = useState(false)
 
     const returnLogin = () => {
-        if (verificar == false) {
-            setIsLogin(!isLogin)
+        if(isLogin && noPassword) {
+            setNoPassword(false)
         }
-        if (noPassword == true) {
-            setIsLogin(true)
-        }
-        setNoPassword(false)
-        setVerificar(false)
+        setIsLogin(!isLogin)
     }
 
     return (
@@ -31,27 +25,25 @@ export default function Login() {
                 <div className="text-center space-y-2 mt-2">
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-800 transition-all">
                         {isLogin ?
-                            "Bem-vindo de volta" : verificar ? "" : noPassword ? "Redefinir senha" : "Criar uma conta"
+                            "Bem-vindo de volta" : noPassword ? "Redefinir senha" : "Criar uma conta"
                         }
                     </h1>
                     <p className="text-sm text-slate-500 font-medium">
                         {isLogin
-                            ? "Insira suas credenciais para acessar sua conta." : verificar ? "" : noPassword ? "Digite seu e-mail para redefinir sua senha." : "Preencha os detalhes abaixo para começar."
+                            ? "Insira suas credenciais para acessar sua conta." : noPassword ? "Digite seu e-mail para redefinir sua senha." : "Preencha os detalhes abaixo para começar."
                         }
                     </p>
                 </div>
 
                 {/* Formulário */}
                 {isLogin ?
-                    <Logar setNoPassword={setNoPassword} setIsLogin={setIsLogin} /> : verificar ?
-                        <Verificar setVerificar={setVerificar} setIsLogin={setIsLogin} /> : noPassword ?
-                            <NoPassword setVerificar={setVerificar} verificar={verificar} setIsLogin={setIsLogin} /> :
-                            <Registro setVerificar={setVerificar} />
+                    <Logar setNoPassword={setNoPassword} setIsLogin={setIsLogin} /> : noPassword ?
+                            <NoPassword/> : ""
                 }
 
                 <p className="text-center text-sm font-medium text-slate-500 pt-3 pb-1">
                     {isLogin ?
-                        "Ainda não tem uma conta?" : verificar ? "E-mail incorreto?" : noPassword ? "Lembrou a senha?" : "Já tem uma conta?"
+                        "Ainda não tem uma conta?" : noPassword ? "Lembrou a senha?" : "Já tem uma conta?"
                     }{" "}
                     <button
                         type="button"
@@ -59,7 +51,7 @@ export default function Login() {
                         className="font-bold text-blue-600 hover:text-blue-500 hover:underline transition-colors focus:outline-none"
                     >
                         {isLogin ?
-                            "Inscreva-se" : verificar ? "Volte aqui." : noPassword ? "Volte aqui." : "Entrar"
+                            <Link href="/registro">Inscreva-se</Link> : "Volte aqui."
                         }
                     </button>
                 </p>

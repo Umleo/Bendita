@@ -5,7 +5,9 @@ export default function AdminLayout({
 }>) {
     return (
         <>
-            <h1>Menu Admin</h1>
+            <nav>
+                teste
+            </nav>
             {children}
         </>
     )
